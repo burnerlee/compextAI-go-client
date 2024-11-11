@@ -6,6 +6,24 @@ import (
 	"github.com/burnerlee/compextAI-go-client/pkg/api"
 )
 
+func getThreadExecutionFromInterface(data interface{}) (*ExecuteThreadResponse, error) {
+	threadExecutionMap := data.(map[string]interface{})
+
+	threadExecutionID, ok := threadExecutionMap["thread_execution_id"].(string)
+	if !ok {
+		return nil, fmt.Errorf("thread_execution_id is missing")
+	}
+	threadID, ok := threadExecutionMap["thread_id"].(string)
+	if !ok {
+		return nil, fmt.Errorf("thread_id is missing")
+	}
+
+	return &ExecuteThreadResponse{
+		ThreadExecutionID: threadExecutionID,
+		ThreadID:          threadID,
+	}, nil
+}
+
 func getThreadFromInterface(data interface{}) (*Thread, error) {
 	threadMap := data.(map[string]interface{})
 
@@ -19,7 +37,7 @@ func getThreadFromInterface(data interface{}) (*Thread, error) {
 	}
 	metadata, ok := threadMap["metadata"].(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("metadata is missing")
+		metadata = make(map[string]interface{})
 	}
 	thread := &Thread{
 		ThreadID: threadID,
@@ -29,7 +47,7 @@ func getThreadFromInterface(data interface{}) (*Thread, error) {
 	return thread, nil
 }
 
-func (t *Thread) Create(client *api.APIClient, opts *ExecutionResponseOpts) (*executeThreadResponse, error) {
+func (t *Thread) Execute(client *api.APIClient, opts *ExecutionResponseOpts) (*ExecuteThreadResponse, error) {
 	response, err := client.DoRequest(fmt.Sprintf("/thread/%s/execute", t.ThreadID), "POST", &executeThreadRequest{
 		ThreadExecutionParamID:      t.ThreadID,
 		AppendAssistantResponse:     opts.AppendAssistantResponse,
@@ -43,7 +61,7 @@ func (t *Thread) Create(client *api.APIClient, opts *ExecutionResponseOpts) (*ex
 		return nil, fmt.Errorf("failed to create thread execution: %s", response.Data)
 	}
 
-	return response.Data.(*executeThreadResponse), nil
+	return getThreadExecutionFromInterface(response.Data)
 }
 
 func List(client *api.APIClient, projectName string) ([]*Thread, error) {
@@ -79,11 +97,11 @@ func Retrieve(client *api.APIClient, threadID string) (*Thread, error) {
 		return nil, fmt.Errorf("failed to get thread: %s", response.Data)
 	}
 
-	return response.Data.(*Thread), nil
+	return getThreadFromInterface(response.Data)
 }
 
 func Create(client *api.APIClient, projectName string, createThreadOpts *CreateThreadOpts) (*Thread, error) {
-	response, err := client.DoRequest(fmt.Sprintf("/thread/%s", projectName), "POST", &createThreadRequest{
+	response, err := client.DoRequest("/thread", "POST", &createThreadRequest{
 		ProjectName: projectName,
 		Title:       createThreadOpts.Title,
 		Metadata:    createThreadOpts.Metadata,
@@ -95,23 +113,23 @@ func Create(client *api.APIClient, projectName string, createThreadOpts *CreateT
 	if response.Status != 200 {
 		return nil, fmt.Errorf("failed to create thread: %s", response.Data)
 	}
-	return response.Data.(*Thread), nil
+	return getThreadFromInterface(response.Data)
 }
 
-func Update(client *api.APIClient, threadID string, updateThreadOpts *UpdateThreadOpts) (*Thread, error) {
+func Update(client *api.APIClient, threadID string, updateThreadOpts *UpdateThreadOpts) error {
 	response, err := client.DoRequest(fmt.Sprintf("/thread/%s", threadID), "PUT", &updateThreadRequest{
 		Title:    updateThreadOpts.Title,
 		Metadata: updateThreadOpts.Metadata,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to update thread: %w", err)
+		return fmt.Errorf("failed to update thread: %w", err)
 	}
 
 	if response.Status != 200 {
-		return nil, fmt.Errorf("failed to update thread: %s", response.Data)
+		return fmt.Errorf("failed to update thread: %s", response.Data)
 	}
 
-	return response.Data.(*Thread), nil
+	return nil
 }
 
 func Delete(client *api.APIClient, threadID string) error {

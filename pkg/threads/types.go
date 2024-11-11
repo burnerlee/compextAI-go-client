@@ -17,7 +17,7 @@ type executeThreadRequest struct {
 	ThreadExecutionSystemPrompt string `json:"thread_execution_system_prompt"`
 }
 
-type executeThreadResponse struct {
+type ExecuteThreadResponse struct {
 	ThreadExecutionID string `json:"thread_execution_id"`
 	ThreadID          string `json:"thread_id"`
 }
@@ -31,10 +31,6 @@ type createThreadRequest struct {
 	ProjectName string                 `json:"project_name"`
 	Title       string                 `json:"title"`
 	Metadata    map[string]interface{} `json:"metadata"`
-}
-
-type createThreadResponse struct {
-	ThreadID string `json:"thread_id"`
 }
 
 type UpdateThreadOpts struct {
