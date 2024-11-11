@@ -12,11 +12,11 @@ func getMessageFromInterface(data interface{}) (*Message, error) {
 
 	messageID, ok := messageMap["message_id"].(string)
 	if !ok {
-		return nil, fmt.Errorf("message_id is missing")
+		messageID = ""
 	}
 	threadID, ok := messageMap["thread_id"].(string)
 	if !ok {
-		return nil, fmt.Errorf("thread_id is missing")
+		threadID = ""
 	}
 	role, ok := messageMap["role"].(string)
 	if !ok {
@@ -26,17 +26,17 @@ func getMessageFromInterface(data interface{}) (*Message, error) {
 	if !ok {
 		return nil, fmt.Errorf("content is missing")
 	}
-	metadata, ok := messageMap["metadata"].(string)
+	metadata, ok := messageMap["metadata"].(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("metadata is missing")
+		metadata = make(map[string]interface{})
 	}
 	createdAt, ok := messageMap["created_at"].(time.Time)
 	if !ok {
-		return nil, fmt.Errorf("created_at is missing")
+		createdAt = time.Time{}
 	}
 	updatedAt, ok := messageMap["updated_at"].(time.Time)
 	if !ok {
-		return nil, fmt.Errorf("updated_at is missing")
+		updatedAt = time.Time{}
 	}
 
 	return &Message{MessageID: messageID, ThreadID: threadID, Role: role, Content: content, Metadata: metadata, CreatedAt: createdAt, UpdatedAt: updatedAt}, nil
