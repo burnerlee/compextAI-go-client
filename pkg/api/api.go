@@ -21,7 +21,7 @@ type APIClient struct {
 func NewAPIClient(baseURL string, apiKey string) *APIClient {
 	return &APIClient{
 		Client:  &http.Client{},
-		BaseURL: baseURL,
+		BaseURL: fmt.Sprintf("%s/api/v1", baseURL),
 		Headers: http.Header{
 			"Authorization": []string{fmt.Sprintf("Bearer %s", apiKey)},
 			"Content-Type":  []string{"application/json"},
