@@ -16,7 +16,9 @@ type CreateMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
 }
-type CreateMessageRequest []*CreateMessage
+type CreateMessageRequest struct {
+	Messages []*CreateMessage `json:"messages"`
+}
 
 type UpdateMessageOpts struct {
 	Metadata map[string]interface{} `json:"metadata"`
