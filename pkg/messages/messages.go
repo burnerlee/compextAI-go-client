@@ -30,13 +30,21 @@ func getMessageFromInterface(data interface{}) (*Message, error) {
 	if !ok {
 		metadata = make(map[string]interface{})
 	}
-	createdAt, ok := messageMap["created_at"].(time.Time)
+	createdAtStr, ok := messageMap["created_at"].(string)
 	if !ok {
-		createdAt = time.Time{}
+		return nil, fmt.Errorf("created_at is missing")
 	}
-	updatedAt, ok := messageMap["updated_at"].(time.Time)
+	createdAt, err := time.Parse(time.RFC3339, createdAtStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse created_at: %w", err)
+	}
+	updatedAtStr, ok := messageMap["updated_at"].(string)
 	if !ok {
-		updatedAt = time.Time{}
+		return nil, fmt.Errorf("updated_at is missing")
+	}
+	updatedAt, err := time.Parse(time.RFC3339, updatedAtStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse updated_at: %w", err)
 	}
 
 	return &Message{MessageID: messageID, ThreadID: threadID, Role: role, Content: content, Metadata: metadata, CreatedAt: createdAt, UpdatedAt: updatedAt}, nil
