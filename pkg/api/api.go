@@ -65,6 +65,11 @@ func (c *APIClient) DoRequest(path string, method string, body interface{}) (*Js
 			}
 			return nil, fmt.Errorf("request failed: %w", err)
 		}
+
+		if response.StatusCode < 200 || response.StatusCode >= 300 {
+			return nil, fmt.Errorf("request failed with status code: %d", response.StatusCode)
+		}
+
 		responseBody, err := io.ReadAll(response.Body)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read response body: %w", err)
