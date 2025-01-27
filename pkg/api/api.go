@@ -40,6 +40,9 @@ type JsonResponse struct {
 func (c *APIClient) DoRequest(path string, method string, body interface{}) (*JsonResponse, error) {
 	var jsonData io.Reader
 
+	url := fmt.Sprintf("%s%s", c.BaseURL, path)
+	fmt.Printf("[compextAI] url: %s, method: %s, body: %v\n", url, method, body)
+
 	if body != nil {
 		jsonDataBytes, err := json.Marshal(body)
 		if err != nil {
@@ -48,7 +51,7 @@ func (c *APIClient) DoRequest(path string, method string, body interface{}) (*Js
 		jsonData = bytes.NewBuffer(jsonDataBytes)
 	}
 
-	request, err := http.NewRequest(method, fmt.Sprintf("%s%s", c.BaseURL, path), jsonData)
+	request, err := http.NewRequest(method, url, jsonData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -67,7 +70,11 @@ func (c *APIClient) DoRequest(path string, method string, body interface{}) (*Js
 		}
 
 		if response.StatusCode < 200 || response.StatusCode >= 300 {
-			return nil, fmt.Errorf("request failed with status code: %d", response.StatusCode)
+			responseBody, err := io.ReadAll(response.Body)
+			if err != nil {
+				return nil, fmt.Errorf("request failed with status code: %d", response.StatusCode)
+			}
+			return nil, fmt.Errorf("request failed with status code: %d, response: %s", response.StatusCode, string(responseBody))
 		}
 
 		responseBody, err := io.ReadAll(response.Body)

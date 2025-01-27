@@ -22,7 +22,7 @@ func getMessageFromInterface(data interface{}) (*Message, error) {
 	if !ok {
 		return nil, fmt.Errorf("role is missing")
 	}
-	content, ok := messageMap["content"].(string)
+	content, ok := messageMap["content"]
 	if !ok {
 		return nil, fmt.Errorf("content is missing")
 	}

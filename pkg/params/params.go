@@ -9,9 +9,10 @@ import (
 func getThreadExecutionParamFromInterface(data interface{}) (*ThreadExecutionParam, error) {
 	threadExecutionParamMap := data.(map[string]interface{})
 
-	threadExecutionParamID, ok := threadExecutionParamMap["thread_execution_param_id"].(string)
+	fmt.Printf("[compextAI] threadExecutionParamMap: %v\n", threadExecutionParamMap)
+	threadExecutionParamID, ok := threadExecutionParamMap["identifier"].(string)
 	if !ok {
-		return nil, fmt.Errorf("thread_execution_param_id is missing")
+		return nil, fmt.Errorf("identifier is missing")
 	}
 	name, ok := threadExecutionParamMap["name"].(string)
 	if !ok {
@@ -23,35 +24,35 @@ func getThreadExecutionParamFromInterface(data interface{}) (*ThreadExecutionPar
 	}
 	model, ok := threadExecutionParamMap["model"].(string)
 	if !ok {
-		return nil, fmt.Errorf("model is missing")
+		return nil, fmt.Errorf("model is missing: %v", ok)
 	}
-	temperature, ok := threadExecutionParamMap["temperature"].(int)
+	temperature, ok := threadExecutionParamMap["temperature"].(float64)
 	if !ok {
-		return nil, fmt.Errorf("temperature is missing")
+		return nil, fmt.Errorf("temperature is missing: %v", ok)
 	}
-	maxTokens, ok := threadExecutionParamMap["max_tokens"].(int)
+	maxTokens, ok := threadExecutionParamMap["max_tokens"].(float64)
 	if !ok {
-		return nil, fmt.Errorf("max_tokens is missing")
+		return nil, fmt.Errorf("max_tokens is missing: %v", ok)
 	}
-	maxCompletionTokens, ok := threadExecutionParamMap["max_completion_tokens"].(int)
+	maxCompletionTokens, ok := threadExecutionParamMap["max_completion_tokens"].(float64)
 	if !ok {
-		return nil, fmt.Errorf("max_completion_tokens is missing")
+		return nil, fmt.Errorf("max_completion_tokens is missing: %v", ok)
 	}
-	maxOutputTokens, ok := threadExecutionParamMap["max_output_tokens"].(int)
+	maxOutputTokens, ok := threadExecutionParamMap["max_output_tokens"].(float64)
 	if !ok {
-		return nil, fmt.Errorf("max_output_tokens is missing")
+		return nil, fmt.Errorf("max_output_tokens is missing: %v", ok)
 	}
 	topP, ok := threadExecutionParamMap["top_p"].(float64)
 	if !ok {
-		return nil, fmt.Errorf("top_p is missing")
+		return nil, fmt.Errorf("top_p is missing: %v", ok)
 	}
-	responseFormat, ok := threadExecutionParamMap["response_format"].(interface{})
+	responseFormat, ok := threadExecutionParamMap["response_format"]
 	if !ok {
-		return nil, fmt.Errorf("response_format is missing")
+		return nil, fmt.Errorf("response_format is missing: %v", ok)
 	}
 	systemPrompt, ok := threadExecutionParamMap["system_prompt"].(string)
 	if !ok {
-		return nil, fmt.Errorf("system_prompt is missing")
+		return nil, fmt.Errorf("system_prompt is missing: %v", ok)
 	}
 
 	threadExecutionParam := &ThreadExecutionParam{
@@ -60,9 +61,9 @@ func getThreadExecutionParamFromInterface(data interface{}) (*ThreadExecutionPar
 		Environment:            environment,
 		Model:                  model,
 		Temperature:            temperature,
-		MaxTokens:              maxTokens,
-		MaxCompletionTokens:    maxCompletionTokens,
-		MaxOutputTokens:        maxOutputTokens,
+		MaxTokens:              int(maxTokens),
+		MaxCompletionTokens:    int(maxCompletionTokens),
+		MaxOutputTokens:        int(maxOutputTokens),
 		TopP:                   topP,
 		ResponseFormat:         responseFormat,
 		SystemPrompt:           systemPrompt,
@@ -74,14 +75,6 @@ func List(client *api.APIClient, projectName string) ([]*ThreadExecutionParam, e
 	response, err := client.DoRequest(fmt.Sprintf("/execparams/fetchall/%s", projectName), "GET", nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list thread execution params: %w", err)
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to list thread execution params: %w", err)
-	}
-
-	if response.Status != 200 {
-		return nil, fmt.Errorf("failed to list thread execution params: %v", response)
 	}
 
 	threadExecutionParams := make([]*ThreadExecutionParam, 0)
@@ -105,10 +98,6 @@ func Retrieve(client *api.APIClient, projectName, name, environment string) (*Th
 		return nil, fmt.Errorf("failed to retrieve thread execution param: %w", err)
 	}
 
-	if response.Status != 200 {
-		return nil, fmt.Errorf("failed to retrieve thread execution param: %v", response)
-	}
-
 	return getThreadExecutionParamFromInterface(response.Data)
 }
 
@@ -121,10 +110,6 @@ func Create(client *api.APIClient, projectName, name, environment, templateID st
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create thread execution param: %w", err)
-	}
-
-	if response.Status != 200 {
-		return nil, fmt.Errorf("failed to create thread execution param: %v", response)
 	}
 
 	return getThreadExecutionParamFromInterface(response.Data)
@@ -141,25 +126,17 @@ func Update(client *api.APIClient, projectName, name, environment, templateID st
 		return nil, fmt.Errorf("failed to update thread execution param: %w", err)
 	}
 
-	if response.Status != 200 {
-		return nil, fmt.Errorf("failed to update thread execution param: %v", response)
-	}
-
 	return getThreadExecutionParamFromInterface(response.Data)
 }
 
 func Delete(client *api.APIClient, projectName, name, environment string) error {
-	response, err := client.DoRequest("/execparams/delete", "DELETE", &deleteThreadExecutionParamRequest{
+	_, err := client.DoRequest("/execparams/delete", "DELETE", &deleteThreadExecutionParamRequest{
 		ProjectName: projectName,
 		Name:        name,
 		Environment: environment,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to delete thread execution param: %w", err)
-	}
-
-	if response.Status != 204 {
-		return fmt.Errorf("failed to delete thread execution param: %v", response)
 	}
 
 	return nil

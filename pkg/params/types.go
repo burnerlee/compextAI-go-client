@@ -5,7 +5,7 @@ type ThreadExecutionParam struct {
 	Name                   string      `json:"name"`
 	Environment            string      `json:"environment"`
 	Model                  string      `json:"model"`
-	Temperature            int         `json:"temperature"`
+	Temperature            float64     `json:"temperature"`
 	Timeout                int         `json:"timeout"`
 	MaxTokens              int         `json:"max_tokens"`
 	MaxCompletionTokens    int         `json:"max_completion_tokens"`
